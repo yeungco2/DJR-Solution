@@ -11,6 +11,8 @@
 #define LED_OFF_TASK 2
 #define BATTERY_STATUS_TASK 3
 #define NORMAL_OP_TASK 4
+#define MAX_READINGS 1500
+#define BATTERY_READINGS 3
 
 
 // declare global variables
@@ -26,12 +28,12 @@ int taskTimer [MAX_TASKS] = {-1}; // by default all are off
 int counter = 0;
 int taskCount = 0;
 
-RECORD readings [1000];
+RECORD readings [MAX_READINGS];
 int readingCount = 0;
 
 
 const int LEDPIN = 13;
-const int BUZZER = 5;
+const int BUZZER = 1;
 
 
 void setup() {
@@ -129,10 +131,7 @@ for (int i = 0; i < MAX_TASKS; i++)
 void sensorReadTask ()
 {
   counter++;
-#ifdef DEBUG
-  //counter++;
-  //Serial.print(counter);
-#endif
+
   int avgFSR1 = 0;
   int avgFSR2 = 0;
   int numFastRead = 3;
@@ -148,7 +147,7 @@ void sensorReadTask ()
   avgFSR2 /= numFastRead;
 
 // store FSR1 if over threshold
-  if (avgFSR1 >= 50)
+  if (avgFSR1 >= 0)
   {
     // print out timestamp and save it in memory
     RECORD temp;
@@ -156,9 +155,12 @@ void sensorReadTask ()
     temp.sensorValue = avgFSR1;
     temp.sensor = B01;
 
-    readings[readingCount] = temp;
-    readingCount++;
-    toneEnable (1);
+    if (readingCount < MAX_READINGS)
+    {
+      readings[readingCount] = temp;
+      readingCount++;
+      toneEnable (1);
+    }
   }
 
 // store FSR2 if over threshold
@@ -170,42 +172,23 @@ if (avgFSR2 >= 50)
     temp.sensorValue = avgFSR2;
     temp.sensor = B10;
 
-    readings[readingCount] = temp;
-    readingCount++;
-    toneEnable (1);
+    if (readingCount < MAX_READINGS)
+    {
+      readings[readingCount] = temp;
+      readingCount++;
+      toneEnable (1);
+    }
   }
-  
+ 
 
-  
-//  time_t t = now();
-//  int hour = hour(t);
-//  int minutes = minute(t);
-//  int second = second(t);
-//  int day = day(t);
-//  int weekday = weekday(t);
-//  int month = month(t);
-//  int year = year(t);
-//
-//  printf("%d/%d/%d, %d:%d:%d", year, month, day, hour, minutes, second);
-//  
-
-  
-  Serial.print("       A3: ");
-  Serial.print(avgFSR1);
-  Serial.print("       A4: ");
-  Serial.println(avgFSR2);
-  Serial.println();
-  //Serial.print("A7:");
-  //Serial.println(analogRead (FSR3));
-
-  // reinitialize the task timer
+ // reinitialize the task timer
   taskTimer[SENSOR_READ_TASK] = 1;
 }
 
 void toneOffTask()
 {
   // turn PWM off
-    digitalWrite (BUZZER, LOW);
+    analogWrite (BUZZER, 0);
 }
 
 void ledOffTask()
@@ -216,6 +199,8 @@ void ledOffTask()
 
 void batteryStatusTask()
 {
+    int analogLevel = analogRead (A3);
+    int voltageLevel = analogToVoltage(analogLevel);
     
 }
 
@@ -230,7 +215,7 @@ void normalOperationTask()
 void toneEnable (int duration)
 {
     // activate buzzer with PWM pin 
-    digitalWrite (BUZZER, HIGH);
+    analogWrite (BUZZER, 127);
     taskTimer[TONE_OFF_TASK] = duration;
 }
 
@@ -241,8 +226,8 @@ void ledEnable (int duration)
     taskTimer[LED_OFF_TASK] = duration;
 }
 
-int analogToDigitalVoltage(int analogValue)
+int analogToVoltage(int analogValue)
 {
-    
+    return analogValue*5/1024;
 }
 
