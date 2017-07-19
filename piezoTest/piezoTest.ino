@@ -25,7 +25,7 @@ int readingCount = 0;
 int battery [3000];
 
 const int LEDPIN = 13;
-const int BUZZER = 1;
+const int BUZZER = 5;
 bool isIncrease = true;
 
 void setup() {
@@ -42,30 +42,101 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly
 
-   analogWrite(A5, readingCount);
-   Serial.print("analogWrite: ");
 
-  if((readingCount == 255) && (isIncrease))
+
+
+  
+//
+//   analogWrite(A5, readingCount);
+//   Serial.print("analogWrite: ");
+//
+//  if((readingCount == 255) && (isIncrease))
+//  {
+//    isIncrease = false;
+//  }
+//  if((readingCount == 0) && (!isIncrease))
+//  {
+//    isIncrease = true;
+//  }
+//  
+//   
+//   if(isIncrease)
+//   {
+//   readingCount++;
+//   Serial.println(readingCount);
+//   }
+//   else
+//   {
+//    readingCount--;
+//    Serial.println(readingCount);
+//   }
+//
+// delay(1000);
+
+  int freq = 0;
+  int duty = 0;
+  char incomingByte;
+  Serial.write("Frequency: ");
+  while(Serial.available() <= 0)
   {
-    isIncrease = false;
+    //do nothing
   }
-  if((readingCount == 0) && (!isIncrease))
+
+  freq = 0;
+  while(1)
   {
-    isIncrease = true;
+  incomingByte = Serial.read();
+  if (incomingByte == '\n')
+      break;
+  if (incomingByte == -1)
+      continue;
+  freq *= 10;    //shift to the left
+  freq = ((incomingByte - 48) + freq);   //convert to int, 
+  Serial.println(freq);
+  }
+
+  
+  // if entered get dutyCycle
+  Serial.print(freq);
+  Serial.println(" Hz");
+
+  Serial.write("Duty Cycle: ");
+  while(Serial.available() <= 0)
+  {
+     // do nothing
   }
   
-   
-   if(isIncrease)
-   {
-   readingCount++;
-   Serial.println(readingCount);
-   }
-   else
-   {
-    readingCount--;
-    Serial.println(readingCount);
-   }
 
- delay(1000);
-   
+  duty = 0;
+  while(1)
+  {
+  incomingByte = Serial.read();
+  if (incomingByte == '\n')
+      break;
+  if (incomingByte == -1)
+      continue;    
+  duty *= 10;    //shift to the left
+  duty = ((incomingByte - 48) + duty);   //convert to int, 
+  Serial.println(duty);
+  }
+  Serial.print(duty);
+  Serial.println(" % duty cycle");
+  pwm(freq, duty);
+
+
+
 }
+
+void pwm(int frequency, int dutyCycle)
+{
+  int duty = dutyCycle/100;
+  int sec = (1000000/frequency)*duty;
+  for (int i = 0; i < frequency; i++)
+  {
+  digitalWrite(BUZZER, HIGH);
+  delayMicroseconds(sec);
+  digitalWrite(BUZZER, LOW);
+  delayMicroseconds((1000000/frequency) - sec);
+  }
+}
+
