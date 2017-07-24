@@ -13,6 +13,9 @@
 #define MAX_READINGS 2000
 #define BATTERY_READINGS 3
 
+#define _BV(bit) (1 << (bit))
+
+
 
 
 
@@ -41,40 +44,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly
-
-
-
-
-  
-//
-//   analogWrite(A5, readingCount);
-//   Serial.print("analogWrite: ");
-//
-//  if((readingCount == 255) && (isIncrease))
-//  {
-//    isIncrease = false;
-//  }
-//  if((readingCount == 0) && (!isIncrease))
-//  {
-//    isIncrease = true;
-//  }
-//  
-//   
-//   if(isIncrease)
-//   {
-//   readingCount++;
-//   Serial.println(readingCount);
-//   }
-//   else
-//   {
-//    readingCount--;
-//    Serial.println(readingCount);
-//   }
-//
-// delay(1000);
-
   int freq = 0;
-  int duty = 0;
   char incomingByte;
   Serial.write("Frequency: ");
   while(Serial.available() <= 0)
@@ -95,33 +65,11 @@ void loop() {
   Serial.println(freq);
   }
 
-  
-  // if entered get dutyCycle
-  Serial.print(freq);
-  Serial.println(" Hz");
-
-  Serial.write("Duty Cycle: ");
-  while(Serial.available() <= 0)
-  {
-     // do nothing
-  }
-  
-
-  duty = 0;
-  while(1)
-  {
-  incomingByte = Serial.read();
-  if (incomingByte == '\n')
-      break;
-  if (incomingByte == -1)
-      continue;    
-  duty *= 10;    //shift to the left
-  duty = ((incomingByte - 48) + duty);   //convert to int, 
-  Serial.println(duty);
-  }
-  Serial.print(duty);
-  Serial.println(" % duty cycle");
-  pwm (freq, duty);
+  int adc = map(freq, 0, 1023, 0, 255); 
+  Serial.print(" adc: ");
+  Serial.println(adc);
+  analogWrite(BUZZER, adc);
+  //https://www.allaboutcircuits.com/projects/using-the-arduinos-analog-io/
 }
 
 void pwm(int frequency, int dutyCycle)

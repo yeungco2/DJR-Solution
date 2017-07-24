@@ -41,20 +41,17 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly
 
-   battery[readingCount] = analogRead(A5);
-   Serial.println(analogRead(A5));
+   int num = 3;
+   int reading = 0;
+   //battery[readingCount] = analogRead(A5);
+   for (int i = 0; i < num; i++)
+   {
+    reading += analogRead(A5);
+   }
+   reading /= num;
+   Serial.println(reading);
    readingCount++;
 
    
-   if ((Serial.available() > 0) && (Serial.read() == (int) "p"))
-   {
-    for(int i = 0; i < readingCount; i++)
-    {
-      Serial.print(i);
-      Serial.print(":  ");
-      Serial.println(battery[readingCount]);
-      
-    }
-   }
   delay(1000);
 }
